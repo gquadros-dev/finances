@@ -46,8 +46,8 @@ jobs:
           ssh -i ~/.ssh/deploy_key \
               -p ${{ secrets.SSH_PORT }} \
               root@${{ secrets.SSH_HOST }} \
-              "bash -lc 'cd /var/www/finances && \
-               bun install --production && \
-               pm2 restart finances 2>/dev/null || \
-               pm2 start \"bun run start\" --name finances && \
-               pm2 save'"
+              "cd /var/www/finances && \
+               /root/.bun/bin/bun install --production && \
+               /root/.nvm/versions/node/v20.20.0/bin/pm2 restart finances 2>/dev/null || \
+               /root/.nvm/versions/node/v20.20.0/bin/pm2 start '/root/.bun/bin/bun run start' --name finances && \
+               /root/.nvm/versions/node/v20.20.0/bin/pm2 save"
