@@ -55,6 +55,8 @@ jobs:
           cd /var/www/finances
           /root/.bun/bin/bun install --production
           /root/.nvm/versions/node/v20.20.0/bin/pm2 restart finances 2>/dev/null \
-            || /root/.nvm/versions/node/v20.20.0/bin/pm2 start '/root/.bun/bin/bun run start' --name finances
+            || /root/.nvm/versions/node/v20.20.0/bin/pm2 start \
+               '/root/.bun/bin/bun run start -- -p ${{ vars.APP_PORT }}' \
+               --name finances
           /root/.nvm/versions/node/v20.20.0/bin/pm2 save
           ENDSSH
