@@ -45,9 +45,16 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key \
               -p ${{ secrets.SSH_PORT }} \
-              root@${{ secrets.SSH_HOST }} \
-              "cd /var/www/finances && \
-               /root/.bun/bin/bun install --production && \
-               /root/.nvm/versions/node/v20.20.0/bin/pm2 restart finances 2>/dev/null || \
-               /root/.nvm/versions/node/v20.20.0/bin/pm2 start '/root/.bun/bin/bun run start' --name finances && \
-               /root/.nvm/versions/node/v20.20.0/bin/pm2 save"
+              root@${{ secrets.SSH_HOST }} << 'ENDSSH'
+          set -e
+          # ensure build tools exist (needed to compile better-sqlite3)
+          command -v make || apt-get install -y --no-install-recommends build-essential
+          # put node in PATH so node-gyp works
+          export NVM_DIR="/root/.nvm"
+          source "$NVM_DIR/nvm.sh"
+          cd /var/www/finances
+          /root/.bun/bin/bun install --production
+          /root/.nvm/versions/node/v20.20.0/bin/pm2 restart finances 2>/dev/null \
+            || /root/.nvm/versions/node/v20.20.0/bin/pm2 start '/root/.bun/bin/bun run start' --name finances
+          /root/.nvm/versions/node/v20.20.0/bin/pm2 save
+          ENDSSH
