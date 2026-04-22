@@ -12,15 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        run: bun run build
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -28,32 +19,31 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.SSH_PORT }} -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Sync files
+      - name: Sync source
         run: |
           rsync -az --delete \
             --exclude='.git' \
             --exclude='node_modules' \
+            --exclude='.next' \
             --exclude='*.db' \
             --exclude='*.db-shm' \
             --exclude='*.db-wal' \
             --exclude='.env*' \
-            --exclude='.next/cache' \
             -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
             ./ root@${{ secrets.SSH_HOST }}:/var/www/finances/
 
-      - name: Install production deps & restart
+      - name: Build & restart on server
         run: |
           ssh -i ~/.ssh/deploy_key \
               -p ${{ secrets.SSH_PORT }} \
               root@${{ secrets.SSH_HOST }} << 'ENDSSH'
           set -e
-          # ensure build tools exist (needed to compile better-sqlite3)
           command -v make || apt-get install -y --no-install-recommends build-essential
-          # put node in PATH so node-gyp works
           export NVM_DIR="/root/.nvm"
           source "$NVM_DIR/nvm.sh"
           cd /var/www/finances
-          /root/.bun/bin/bun install --production
+          /root/.bun/bin/bun install
+          /root/.bun/bin/bun run build
           /root/.nvm/versions/node/v20.20.0/bin/pm2 restart finances 2>/dev/null \
             || /root/.nvm/versions/node/v20.20.0/bin/pm2 start \
                '/root/.bun/bin/bun run start -- -p ${{ vars.APP_PORT }}' \
