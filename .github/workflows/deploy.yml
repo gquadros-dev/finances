@@ -43,6 +43,7 @@ jobs:
           source "$NVM_DIR/nvm.sh"
           cd /var/www/finances
           /root/.bun/bin/bun install
+          npm rebuild better-sqlite3
           /root/.bun/bin/bun run build
           /root/.nvm/versions/node/v20.20.0/bin/pm2 restart finances 2>/dev/null \
             || /root/.nvm/versions/node/v20.20.0/bin/pm2 start \
