@@ -6,9 +6,10 @@ const fmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" 
 
 interface Props {
   assets: Asset[];
+  hideValues?: boolean;
 }
 
-export default function SummaryCards({ assets }: Props) {
+export default function SummaryCards({ assets, hideValues }: Props) {
   const totalInvested = assets.reduce((s, a) => s + a.total_invested, 0);
   const currentValue = assets.reduce((s, a) => s + a.current_value, 0);
   const gainLoss = currentValue - totalInvested;
@@ -22,7 +23,7 @@ export default function SummaryCards({ assets }: Props) {
           Investido
         </p>
         <p className="text-xl font-bold mt-1.5 text-zinc-900 dark:text-zinc-100 tabular-nums">
-          {fmt.format(totalInvested)}
+          {hideValues ? "••••" : fmt.format(totalInvested)}
         </p>
       </div>
 
@@ -31,7 +32,7 @@ export default function SummaryCards({ assets }: Props) {
           Valor Atual
         </p>
         <p className="text-xl font-bold mt-1.5 text-zinc-900 dark:text-zinc-100 tabular-nums">
-          {fmt.format(currentValue)}
+          {hideValues ? "••••" : fmt.format(currentValue)}
         </p>
       </div>
 
@@ -54,8 +55,7 @@ export default function SummaryCards({ assets }: Props) {
             positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
           }`}
         >
-          {positive ? "+" : ""}
-          {fmt.format(gainLoss)}
+          {hideValues ? "••••" : `${positive ? "+" : ""}${fmt.format(gainLoss)}`}
         </p>
         <p
           className={`text-sm font-semibold tabular-nums ${

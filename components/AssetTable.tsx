@@ -32,6 +32,7 @@ interface ChartPoint {
 
 interface Props {
   assets: Asset[];
+  hideValues?: boolean;
   onAddPurchase: (a: Asset) => void;
   onUpdatePrice: (a: Asset) => void;
   onViewPurchases: (a: Asset) => void;
@@ -40,6 +41,7 @@ interface Props {
 
 export default function AssetTable({
   assets,
+  hideValues,
   onAddPurchase,
   onUpdatePrice,
   onViewPurchases,
@@ -123,7 +125,7 @@ export default function AssetTable({
 
               <div className="text-right shrink-0">
                 <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  {fmtCompact.format(a.current_value)}
+                  {hideValues ? "••••" : fmtCompact.format(a.current_value)}
                 </p>
                 <p className="text-xs text-zinc-400">{fmtQty(a.total_quantity)} un.</p>
               </div>
@@ -153,12 +155,12 @@ export default function AssetTable({
               <div className="px-4 pb-5 space-y-5 bg-zinc-50/60 dark:bg-zinc-900/40 border-t border-zinc-100 dark:border-zinc-800/50">
                 {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
-                  <Stat label="P. Médio" value={fmt.format(a.avg_cost)} />
-                  <Stat label="Preço Atual" value={fmt.format(a.current_price)} />
-                  <Stat label="Investido" value={fmt.format(a.total_invested)} />
+                  <Stat label="P. Médio" value={hideValues ? "••••" : fmt.format(a.avg_cost)} />
+                  <Stat label="Preço Atual" value={hideValues ? "••••" : fmt.format(a.current_price)} />
+                  <Stat label="Investido" value={hideValues ? "••••" : fmt.format(a.total_invested)} />
                   <Stat
                     label="Ganho / Perda"
-                    value={`${gain ? "+" : ""}${fmt.format(a.gain_loss)}`}
+                    value={hideValues ? "••••" : `${gain ? "+" : ""}${fmt.format(a.gain_loss)}`}
                     valueClass={gainCls}
                   />
                 </div>
@@ -203,7 +205,7 @@ export default function AssetTable({
                             width={44}
                             tickFormatter={(v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(0)}%`}
                           />
-                          <Tooltip content={<PurchaseTooltip base={points[0].pricePerUnit} />} />
+                          <Tooltip content={<PurchaseTooltip base={points[0].pricePerUnit} hideValues={hideValues} />} />
                           <ReferenceLine
                             y={0}
                             stroke="#71717a"
@@ -291,10 +293,12 @@ function PurchaseTooltip({
   active,
   payload,
   base,
+  hideValues,
 }: {
   active?: boolean;
   payload?: Array<{ payload: ChartPoint }>;
   base?: number;
+  hideValues?: boolean;
 }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
@@ -313,7 +317,7 @@ function PurchaseTooltip({
       <p className="text-zinc-500 dark:text-zinc-400">
         Preço:{" "}
         <span className="text-zinc-900 dark:text-zinc-100 font-medium">
-          {fmt.format(p.pricePerUnit)}
+          {hideValues ? "••••" : fmt.format(p.pricePerUnit)}
         </span>
       </p>
       {!isToday && p.quantity > 0 && (
@@ -327,7 +331,7 @@ function PurchaseTooltip({
       <p className={`font-semibold ${pctColor}`}>
         {sign}{p.pct.toFixed(2)}% vs. 1ª compra
       </p>
-      {base != null && (
+      {base != null && !hideValues && (
         <p className="text-zinc-400 text-[10px]">
           Base: {fmt.format(base)}
         </p>

@@ -16,9 +16,10 @@ type Targets = Record<AssetClass, number>;
 
 interface Props {
   assets: Asset[];
+  hideValues?: boolean;
 }
 
-export default function AllocationChart({ assets }: Props) {
+export default function AllocationChart({ assets, hideValues }: Props) {
   const [targets, setTargets] = useState<Targets>(
     Object.fromEntries(CLASSES.map((c) => [c, 0])) as Targets
   );
@@ -83,7 +84,7 @@ export default function AllocationChart({ assets }: Props) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(v) => [fmt.format(v as number), "Valor"] as [string, string]}
+                formatter={(v) => [hideValues ? "••••" : fmt.format(v as number), "Valor"] as [string, string]}
                 labelFormatter={(_, p) =>
                   (p[0]?.payload as { label?: string } | undefined)?.label ?? ""
                 }
@@ -108,7 +109,7 @@ export default function AllocationChart({ assets }: Props) {
               </span>
               {d.value > 0 && (
                 <span className="text-xs text-zinc-400 shrink-0">
-                  {fmtCompact.format(d.value)}
+                  {hideValues ? "••••" : fmtCompact.format(d.value)}
                 </span>
               )}
               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 w-12 text-right shrink-0 tabular-nums">
@@ -158,11 +159,11 @@ export default function AllocationChart({ assets }: Props) {
                     </span>
                   ) : d.diff > 0 ? (
                     <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                      aportar {fmtCompact.format(d.diff)}
+                      aportar {hideValues ? "••••" : fmtCompact.format(d.diff)}
                     </span>
                   ) : (
                     <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                      rebalancear {fmtCompact.format(Math.abs(d.diff))}
+                      rebalancear {hideValues ? "••••" : fmtCompact.format(Math.abs(d.diff))}
                     </span>
                   )
                 )}

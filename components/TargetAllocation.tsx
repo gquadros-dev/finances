@@ -13,9 +13,10 @@ const emptyTargets = () =>
 
 interface Props {
   assets: Asset[];
+  hideValues?: boolean;
 }
 
-export default function TargetAllocation({ assets }: Props) {
+export default function TargetAllocation({ assets, hideValues }: Props) {
   const [targets, setTargets] = useState<Targets>(emptyTargets);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Record<AssetClass, string>>(
@@ -225,11 +226,11 @@ export default function TargetAllocation({ assets }: Props) {
                       <span className="text-xs font-medium text-emerald-600">OK ✓</span>
                     ) : needsBuy ? (
                       <span className="text-xs font-medium text-blue-600">
-                        Comprar {fmt.format(diff)}
+                        Comprar {hideValues ? "••••" : fmt.format(diff)}
                       </span>
                     ) : needsSell ? (
                       <span className="text-xs font-medium text-amber-600">
-                        Vender {fmt.format(Math.abs(diff))}
+                        Vender {hideValues ? "••••" : fmt.format(Math.abs(diff))}
                       </span>
                     ) : null}
                   </div>
@@ -249,7 +250,7 @@ export default function TargetAllocation({ assets }: Props) {
                   {totalTarget}%{totalTarget === 100 ? " ✓" : ""}
                 </span>
               </span>
-              {totalValue > 0 && <span>Carteira: {fmt.format(totalValue)}</span>}
+              {totalValue > 0 && <span>Carteira: {hideValues ? "••••" : fmt.format(totalValue)}</span>}
             </div>
           </div>
         )}
