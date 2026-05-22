@@ -16,19 +16,56 @@ type ActiveModal =
   | { type: "updatePrice"; asset: Asset }
   | { type: "purchases"; asset: Asset };
 
+interface QueueStatus {
+  counts: { waiting: number; delayed: number; active: number; completed: number; failed: number };
+  lastRun: string | null;
+}
+
 export default function Home() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [modal, setModal] = useState<ActiveModal | null>(null);
   const [hideValues, setHideValues] = useState(false);
+  const [updatingPrices, setUpdatingPrices] = useState(false);
+  const [queue, setQueue] = useState<QueueStatus | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/assets");
-    setAssets(await res.json());
+    try {
+      const res = await fetch("/api/assets");
+      setAssets(await res.json());
+    } catch {}
   }, []);
+
+  const loadQueue = useCallback(async () => {
+    try {
+      const res = await fetch("/api/queue");
+      if (res.ok) setQueue(await res.json());
+    } catch {}
+  }, []);
+
+  const handleUpdatePrices = async () => {
+    setUpdatingPrices(true);
+    try {
+      const res = await fetch("/api/prices", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error ?? "Erro ao atualizar preços.");
+        return;
+      }
+      await load();
+      if (data.errors?.length > 0) {
+        alert(`Preços atualizados: ${data.updated}\nNão encontrados: ${data.errors.join(", ")}`);
+      }
+    } finally {
+      setUpdatingPrices(false);
+    }
+  };
 
   useEffect(() => {
     load();
-  }, [load]);
+    loadQueue();
+    const interval = setInterval(() => { load(); loadQueue(); }, 30000);
+    return () => clearInterval(interval);
+  }, [load, loadQueue]);
 
   const handleDelete = async (asset: Asset) => {
     if (!confirm(`Remover ${asset.ticker}? Todas as compras serão apagadas.`)) return;
@@ -45,7 +82,42 @@ export default function Home() {
           <h1 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
             Minhas Finanças
           </h1>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {queue && (
+              <div className="flex items-center gap-1.5 text-xs text-zinc-400 dark:text-zinc-500">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    queue.counts.active > 0
+                      ? "bg-green-500 animate-pulse"
+                      : queue.counts.failed > 0
+                      ? "bg-red-500"
+                      : "bg-zinc-300 dark:bg-zinc-600"
+                  }`}
+                />
+                {queue.counts.active > 0
+                  ? "atualizando"
+                  : queue.lastRun
+                  ? new Date(queue.lastRun).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                  : "aguardando"}
+              </div>
+            )}
+            <button
+              onClick={handleUpdatePrices}
+              disabled={updatingPrices || assets.length === 0}
+              className="p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Atualizar preços via B3"
+            >
+              {updatingPrices ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              )}
+            </button>
             <button
               onClick={() => setHideValues((v) => !v)}
               className="p-1.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"

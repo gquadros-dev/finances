@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const VALID_USER = "gquadros";
-const VALID_PASS = "20023107$G@br1el";
+const VALID_USER = process.env.AUTH_USER ?? "";
+const VALID_PASS = process.env.AUTH_PASS ?? "";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const auth = req.headers.get("authorization");
 
   if (auth) {

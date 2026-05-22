@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { CLASS_LABELS, CLASS_COLORS, type AssetClass, type Asset } from "@/lib/types";
 
 const CLASSES = Object.keys(CLASS_LABELS) as AssetClass[];
@@ -68,8 +68,7 @@ export default function AllocationChart({ assets, hideValues }: Props) {
       {/* Donut — centered */}
       <div className="flex justify-center">
         <div className="w-44 h-44">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+          <PieChart width={176} height={176}>
               <Pie
                 data={pieData}
                 cx="50%"
@@ -89,8 +88,7 @@ export default function AllocationChart({ assets, hideValues }: Props) {
                   (p[0]?.payload as { label?: string } | undefined)?.label ?? ""
                 }
               />
-            </PieChart>
-          </ResponsiveContainer>
+          </PieChart>
         </div>
       </div>
 
